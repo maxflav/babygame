@@ -1,20 +1,18 @@
-const STROKE_COLOR = '#666666';
+const STROKE_COLOR = 'rgba(0,0,0,0.15)';
 
 const COLOR_MAP = {
-  [EMPTY]: '#CCCCCC',
-  [BABY]: '#6666CC',
-  // [BABY_WON]: '#66CC66',
-  [DANGER]: '#CC6666',
-  // [BABY_LOST]: '#CC0000',
-  [JUNK]: '#663300',
   [NOTHING]: '#FFFFFF',
 }
 
 const IMAGE_SOURCES = {
   [WALL]: 'gate',
-  [BABY]: 'baby',
-  [BABY_WON]: 'baby',
+  [BABY_LEFT]: 'babyleft',
+  [BABY_RIGHT]: 'babyright',
+  [BABY_FLOATING]: 'babyright',
   [BABY_LOST]: 'dead',
+  [EMPTY]: 'floor',
+  [DANGER]: 'knife',
+  [JUNK]: 'mud',
 }
 
 function draw() {
@@ -35,10 +33,10 @@ function draw() {
 
   if (lost) {
     drawOneThing(BABY_LOST, baby.x, baby.y);
-  } else if (won) {
-    drawOneThing(BABY_WON, baby.x, baby.y);
+  // } else if (won) {
+    // drawOneThing(BABY_WON, baby.x, baby.y);
   } else {
-    drawOneThing(BABY, baby.x, baby.y);
+    drawOneThing(facingLeft ? BABY_LEFT : BABY_RIGHT, baby.x, baby.y);
   }
 
   if (topMessage) {
@@ -62,12 +60,13 @@ function drawOneThing(thing, x, y) {
     context.imageSmoothingQuality = "high";
     context.drawImage(image, x * cellSize, y * cellSize, cellSize, cellSize);
   } else {
-    context.strokeStyle = STROKE_COLOR;
     context.fillStyle = COLOR_MAP[thing];
-
-    console.log('context.strokeRect, fillRect');
-    context.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
     context.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+  }
+
+  if (thing != BABY_FLOATING) {
+    context.strokeStyle = STROKE_COLOR;
+    context.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
   }
 }
 

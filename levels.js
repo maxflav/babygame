@@ -1,19 +1,11 @@
-const levels = [level1, level2, level3, level4, level5, level6];
-// const levels = [level1, level4, level6, level5];
-// const levels = [level0];
+// const levels = [level1, level2, level3, level4, level5, level6];
+const levels = [level2, level4, level5, level6];
 
 const numLevels = levels.length;
 
 function loadLevel(level) {
   topMessage = null;
   levels[level - 1]();
-}
-
-function level0() {
-  setSizing(2);
-
-  baby.x = 0;
-  baby.y = 1;
 }
 
 function level1() {
@@ -27,9 +19,12 @@ function level1() {
   for (let y = 0; y < gameHeight; y++) {
       state[0][y] = DANGER;
   }
+  facingLeft = true;
 }
 
 function level2() {
+  setSizing(5);
+  showMessage(["Why are", "there so", "many", "knives?!"], [DANGER, DANGER, DANGER, DANGER, DANGER]);
   setSizing(11);
 
   baby.x = 5;
@@ -43,12 +38,13 @@ function level2() {
       state[0][y] = DANGER;
       state[gameWidth-1][y] = DANGER;
   }
+  facingLeft = false;
 }
 
 
 function level3() {
-  setSizing(7);
-  showMessage(["Some spots", "are muddy", "and can't", "support", "a gate!"], [WALL, JUNK, WALL]);
+  setSizing(5);
+  showMessage(["Some spots", "are muddy", "and can't", "support", "a gate."], [WALL, JUNK, WALL]);
 
   setSizing(7);
 
@@ -66,9 +62,13 @@ function level3() {
   }
 
   state[3][3] = DANGER;
+  facingLeft = false;
 }
 
 function level4() {
+  setSizing(5);
+  showMessage(["Maybe this", "isn't the", "safest place", "for a baby..."], [DANGER, JUNK, BABY_RIGHT, JUNK, DANGER]);
+
   setSizing(9);
 
   baby.x = (gameHeight - 1) / 2;
@@ -88,7 +88,7 @@ function level4() {
     }
   }
 
-  // state[3][3] = DANGER;
+  facingLeft = true;
 }
 
 function level5() {
@@ -121,6 +121,8 @@ function level5() {
 
   state[5][1] = DANGER;
   state[5][10] = DANGER;
+
+  facingLeft = false;
 }
 
 function level6() {
@@ -142,4 +144,6 @@ function level6() {
   for (let y = 0; y < gameHeight; y++) {
     state[gameWidth-1][y] = NOTHING;
   }
+
+  facingLeft = true;
 }

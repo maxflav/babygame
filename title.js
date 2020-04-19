@@ -5,18 +5,18 @@ let returnToGame = false;
 
 const TITLE_PAGES = [
   ['Where did', 'this baby', 'come from?'],
-  ['Oh no!', 'It\'s going', 'toward that', 'broken glass!'],
-  ['Click to place',  'gates.', 'Keep it safe.', 'Keep it alive.'],
+  ['Oh no!', 'It\'s crawling', 'toward that', 'knife!'],
+  ['Click to', 'place gates.', 'Keep it safe.', 'Keep it alive.'],
 ];
 
 const TITLE_SCENES = [
-  [BABY],
-  [DANGER, EMPTY, EMPTY, EMPTY, BABY],
-  [DANGER, EMPTY, WALL, EMPTY, BABY_WON],
+  [BABY_FLOATING],
+  [DANGER, EMPTY, EMPTY, EMPTY, BABY_LEFT],
+  [DANGER, EMPTY, WALL, BABY_LEFT, EMPTY],
 ]
 
 const WIN_MESSAGE = ["You win!"];
-const WIN_SCENE = [BABY_WON];
+const WIN_SCENE = [BABY_FLOATING];
 
 function showTitleScreen() {
   titlePage = 0;
@@ -60,7 +60,7 @@ function drawScene(scene) {
   let x = gameWidth / 2 - totalSceneWidth / 2;
   let y = gameHeight - 1;
   for (let thing of scene) {
-    drawOneThing(EMPTY, x, y);
+    if (thing != BABY_FLOATING) drawOneThing(EMPTY, x, y);
     if (thing != EMPTY) drawOneThing(thing, x, y);
     x++;
   }

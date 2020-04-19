@@ -4,6 +4,7 @@ let level = 1;
 let won = false;
 let lost = false;
 let titleOpen = true;
+let facingLeft = true;
 
 let undoStates = [];
 
@@ -24,7 +25,6 @@ function startGame() {
 
   titleOpen = false;
   loadLevel(level);
-  // state[baby.x][baby.y] = BABY;
   won = false;
   lost = false;
 
@@ -61,7 +61,6 @@ function gameOnKeypress(keyEvent) {
 
 function gameOnClick(clickEvent) {
   if (titleOpen)  {
-    // startGame();
     return;
   }
 
@@ -146,9 +145,8 @@ function moveBaby() {
     return;
   }
 
-  // breadth-first search. keep searching until we find a solution, then keep searching until
-  // we've found all solutions of the same length. pick the solution with best score.
-  // score = shortest path; farthest distance from walls
+  // breadth-first search. pick the solution with best score.
+  // score = shortest path; farthest distance from walls; closest to dangers
 
   let bestSolution = null;
   let bestCount = 0;
@@ -213,7 +211,13 @@ function moveBaby() {
 
   if (bestSolution != null) {
     let movingTo = bestSolution.path[1];
+    if (movingTo.x > baby.x) {
+      facingLeft = false;
+    } else if (movingTo.x < baby.x) {
+      facingLeft = true;
+    }
     baby = movingTo;
+
     if (getThing(movingTo) == DANGER) {
       lost = true;
       topMessage = "Oh no! Click to restart";

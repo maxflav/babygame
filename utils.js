@@ -6,14 +6,15 @@ const TOTAL_WIDTH = canvas.getBoundingClientRect().width;
 
 let cellSize = 1;
 
-const EMPTY     = 0;
-const WALL      = 1;
-const DANGER    = 2;
-const BABY      = 3;
-const BABY_WON  = 4;
-const BABY_LOST = 5;
-const JUNK      = 6;
-const NOTHING   = 7;
+const EMPTY         = 0;
+const WALL          = 1;
+const DANGER        = 2;
+const BABY_LEFT     = 3;
+const BABY_RIGHT    = 4;
+const BABY_LOST     = 5;
+const JUNK          = 6;
+const NOTHING       = 7;
+const BABY_FLOATING = 8;
 
 function posToInt(pos) {
   return pos.x * gameHeight + pos.y;
