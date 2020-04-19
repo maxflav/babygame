@@ -7,6 +7,8 @@ let titleOpen = true;
 
 let undoStates = [];
 
+let topMessage = null;
+
 function initialize() {
   canvas.addEventListener('click', gameOnClick);
   canvas.addEventListener('click', titleOnClick);
@@ -22,7 +24,7 @@ function startGame() {
 
   titleOpen = false;
   loadLevel(level);
-  state[baby.x][baby.y] = BABY;
+  // state[baby.x][baby.y] = BABY;
   won = false;
   lost = false;
 
@@ -39,8 +41,6 @@ const Z_CODES = ['z', 'KeyZ', 90, 122];
 const SPACE_CODES = [' ', 'Space', 32];
 
 function gameOnKeypress(keyEvent) {
-  // console.log(keyEvent);
-
   let code = keyEvent.key || keyEvent.keyIdentifier || keyEvent.keyCode;
   if (titleOpen)  {
     if (won && (R_CODES.includes(code) || SPACE_CODES.includes(code))) {
@@ -81,11 +81,14 @@ function gameOnClick(clickEvent) {
   const clickX = event.clientX - boundingRect.left;
   const clickY = event.clientY - boundingRect.top;
 
-  const x = Math.floor(clickX / cellSize);
-  const y = Math.floor(clickY / cellSize);
+  const x = Math.floor(clickX / cellSize - 0.5);
+  const y = Math.floor(clickY / cellSize - 1);
   const pos = {x: x, y: y};
 
   if (!inBounds(pos) || getThing(pos) != EMPTY) {
+    return false;
+  }
+  if (x == baby.x && y == baby.y) {
     return false;
   }
 
@@ -113,6 +116,8 @@ function undo() {
   baby = babyCopy(previousState.baby);
   won = previousState.won;
   lost = previousState.lost;
+
+  topMessage = null;
 
   draw();
 }
@@ -164,21 +169,8 @@ function moveBaby() {
     loopCount += 1;
     const {path, pos, score} = queue.shift();
     visited.add(posToInt(pos));
-    // console.log(path.map(({x, y}) => (x + ',' + y)));
-    // console.log(pos);
-    // console.log(score);
-    // console.log('---');
-
-    // if (bestSolution != null && path.length > bestSolution.path.length) {
-    //   break;
-    // }
 
     if (getThing(pos) == DANGER) {
-      // console.log(path.map(({x, y}) => (x + ',' + y)));
-      // console.log(pos);
-      // console.log(score);
-      // console.log('---');
-
       if (bestSolution == null || score < bestSolution.score) {
         bestSolution = {path, score};
         bestCount = 1;
@@ -190,16 +182,10 @@ function moveBaby() {
       continue;
     }
 
-    // const neighbors = neighborPositions(pos);
-    // const posScore = neighbors.filter(getWall).length;
-    // const newScore = score + posScore;
-
     for (const neighbor of neighborPositions(pos)) {
       if (getThing(neighbor) == WALL || visited.has(posToInt(neighbor))) {
         continue;
       }
-
-      // visited.add(posToInt(neighbor));
 
       let wallScore = 0;
       for (let x = 0; x < gameWidth; x++) {
@@ -213,12 +199,9 @@ function moveBaby() {
           const distance = Math.max(dx * dx + dy * dy, 1);
 
           if (thing == WALL) wallScore += (1.0 / distance);
-          // if (thing == DANGER) wallScore -= (1.0 / distance);
+          if (thing == DANGER) wallScore -= (.01 / distance);
         }
       }
-
-      // console.log('computed wall score', neighbor, ' = ', wallScore);
-      // console.log('adding to queue', neighbor, score+wallScore+1);
 
       queue.push({
         path: path.concat([neighbor]),
@@ -229,17 +212,14 @@ function moveBaby() {
   }
 
   if (bestSolution != null) {
-    state[baby.x][baby.y] = EMPTY;
     let movingTo = bestSolution.path[1];
     baby = movingTo;
     if (getThing(movingTo) == DANGER) {
       lost = true;
-      state[baby.x][baby.y] = BABY_LOST;
-    } else {
-      state[baby.x][baby.y] = BABY;
+      topMessage = "Oh no! Click to restart";
     }
   } else {
     won = true;
-    state[baby.x][baby.y] = BABY_WON;
+    topMessage = "Baby is safe! Click to continue";
   }
 }

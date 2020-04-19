@@ -13,6 +13,7 @@ const BABY      = 3;
 const BABY_WON  = 4;
 const BABY_LOST = 5;
 const JUNK      = 6;
+const NOTHING   = 7;
 
 function posToInt(pos) {
   return pos.x * gameHeight + pos.y;
@@ -36,7 +37,7 @@ function getThing(pos) {
 function setSizing(size) {
   gameWidth = size;
   gameHeight = size;
-  cellSize = Math.min(TOTAL_HEIGHT / gameHeight, TOTAL_WIDTH / gameWidth);
+  cellSize = TOTAL_WIDTH / (gameWidth + 1);
 
   for (let x = 0; x < gameWidth; x++) {
     state[x] = [];
@@ -44,5 +45,4 @@ function setSizing(size) {
       state[x][y] = EMPTY;
     }
   }
-
 }

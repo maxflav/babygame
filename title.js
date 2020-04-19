@@ -1,20 +1,18 @@
+const SKIP_TITLE = false;
+
 let titlePage = 0;
 let returnToGame = false;
-
-const SKIP_TITLE = false;
 
 const TITLE_PAGES = [
   ['Where did', 'this baby', 'come from?'],
   ['Oh no!', 'It\'s going', 'toward that', 'broken glass!'],
-  ['Click to place',  'barriers.', 'Keep it safe.', 'Keep it alive.'],
-  ['(Z to undo', 'R to restart)'],
+  ['Click to place',  'gates.', 'Keep it safe.', 'Keep it alive.'],
 ];
 
 const TITLE_SCENES = [
   [BABY],
   [DANGER, EMPTY, EMPTY, EMPTY, BABY],
   [DANGER, EMPTY, WALL, EMPTY, BABY_WON],
-  [BABY_LOST],
 ]
 
 const WIN_MESSAGE = ["You win!"];
@@ -25,7 +23,7 @@ function showTitleScreen() {
   titleOpen = true;
   returnToGame = false;
   won = false;
-  setSizing(5, 5);
+  setSizing(6);
 
   drawTitle();
 
@@ -62,9 +60,8 @@ function drawScene(scene) {
   let x = gameWidth / 2 - totalSceneWidth / 2;
   let y = gameHeight - 1;
   for (let thing of scene) {
-    if (thing != EMPTY) {
-      drawOneThing(thing, x, y);
-    }
+    drawOneThing(EMPTY, x, y);
+    if (thing != EMPTY) drawOneThing(thing, x, y);
     x++;
   }
 }
@@ -77,6 +74,7 @@ function titleOnClick(clickEvent) {
   clickEvent.stopPropagation();
   if (returnToGame) {
     titleOpen = false;
+    topMessage = null;
     draw();
     return false;
   }
@@ -93,7 +91,7 @@ function titleOnClick(clickEvent) {
 
 function showWinScreen() {
   won = true;
-  setSizing(5, 5);
+  setSizing(6);
   titleOpen = true;
   context.fillStyle = '#99ccff';
   context.fillRect(0, 0, TOTAL_WIDTH, TOTAL_HEIGHT);
@@ -107,7 +105,7 @@ function showWinScreen() {
   drawScene(WIN_SCENE);
 }
 
-function showMessage(messageLines) {
+function showMessage(messageLines, scene) {
   titleOpen = true;
   won = false;
   returnToGame = true;
@@ -121,4 +119,5 @@ function showMessage(messageLines) {
   context.textBaseline = 'middle';
 
   drawTextLines(messageLines);
+  if (scene) drawScene(scene);
 }
