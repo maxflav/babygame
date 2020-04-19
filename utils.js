@@ -1,5 +1,21 @@
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
+
+const TOTAL_HEIGHT = canvas.getBoundingClientRect().height;
+const TOTAL_WIDTH = canvas.getBoundingClientRect().width;
+
+let cellSize = 1;
+
+const EMPTY     = 0;
+const WALL      = 1;
+const DANGER    = 2;
+const BABY      = 3;
+const BABY_WON  = 4;
+const BABY_LOST = 5;
+const JUNK      = 6;
+
 function posToInt(pos) {
-  return pos.x * GAME_HEIGHT + pos.y;
+  return pos.x * gameHeight + pos.y;
 }
 
 function neighborPositions(pos) {
@@ -7,7 +23,7 @@ function neighborPositions(pos) {
 }
 
 function inBounds(pos) {
-  return pos.x >= 0 && pos.x < GAME_WIDTH && pos.y >= 0 && pos.y < GAME_HEIGHT;
+  return pos.x >= 0 && pos.x < gameWidth && pos.y >= 0 && pos.y < gameHeight;
 }
 
 function getThing(pos) {
@@ -15,4 +31,18 @@ function getThing(pos) {
     return WALL;
   }
   return state[pos.x][pos.y];
+}
+
+function setSizing(size) {
+  gameWidth = size;
+  gameHeight = size;
+  cellSize = Math.min(TOTAL_HEIGHT / gameHeight, TOTAL_WIDTH / gameWidth);
+
+  for (let x = 0; x < gameWidth; x++) {
+    state[x] = [];
+    for (let y = 0; y < gameHeight; y++) {
+      state[x][y] = EMPTY;
+    }
+  }
+
 }

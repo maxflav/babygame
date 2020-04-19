@@ -1,48 +1,26 @@
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('2d');
-
-const TOTAL_HEIGHT = 600;
-const TOTAL_WIDTH = 600;
-
-const GAME_HEIGHT = 5;
-const GAME_WIDTH = 5;
-const PXL_SIZE = Math.min(TOTAL_HEIGHT / GAME_HEIGHT, TOTAL_WIDTH / GAME_WIDTH);
-
-const STROKE_COLOR = '#666666';
-const EMPTY_COLOR = '#CCCCCC';
-const WALL_COLOR = '#222222';
-const BABY_COLOR = '#6666CC';
-const WON_COLOR = '#66CC66';
-const DANGER_COLOR = '#CC6666';
-const DEAD_COLOR = '#CC0000';
-
-const EMPTY = 0;
-const WALL = 1;
-const DANGER = 2;
-const BABY = 3;
-
 let state = [];
 let baby = {};
 let level = 1;
 let won = false;
 let lost = false;
+let titleOpen = true;
 
 let undoStates = [];
 
 function initialize() {
-  canvas.addEventListener('click', onClick);
-  document.addEventListener('keypress', onKeypress);
-  startGame();
+  canvas.addEventListener('click', gameOnClick);
+  canvas.addEventListener('click', titleOnClick);
+  document.addEventListener('keypress', gameOnKeypress);
+  showTitleScreen();
 }
 
 function startGame() {
-  for (let x = 0; x < GAME_WIDTH; x++) {
-    state[x] = [];
-    for (let y = 0; y < GAME_HEIGHT; y++) {
-      state[x][y] = EMPTY;
-    }
+  if (level > numLevels) {
+    showWinScreen();
+    return;
   }
 
+  titleOpen = false;
   loadLevel(level);
   state[baby.x][baby.y] = BABY;
   won = false;
@@ -54,32 +32,61 @@ function startGame() {
   draw();
 }
 
-function onKeypress(key_event) {
-  // lol idk
-  let code = key_event.key || key_event.keyIdentifier || key_event.keyCode;
-  if (code == 'r' || code == 'KeyR' || code == 82 || code == 114) {
+// lol idk
+const R_CODES = ['r', 'KeyR', 82, 114];
+const U_CODES = ['u', 'KeyU', 85, 117];
+const Z_CODES = ['z', 'KeyZ', 90, 122];
+const SPACE_CODES = [' ', 'Space', 32];
+
+function gameOnKeypress(keyEvent) {
+  // console.log(keyEvent);
+
+  let code = keyEvent.key || keyEvent.keyIdentifier || keyEvent.keyCode;
+  if (titleOpen)  {
+    if (won && (R_CODES.includes(code) || SPACE_CODES.includes(code))) {
+      won = false;
+      level = 1;
+      showTitleScreen();
+    }
+    return false;
+  }
+
+  if (R_CODES.includes(code)) {
     startGame();
-  } else if (code == 'u' || code == 'KeyU' || code == 85 || code == 117) {
+  } else if (Z_CODES.includes(code) || U_CODES.includes(code)) {
     undo();
   }
+  return false;
 }
 
-function onClick(click_event) {
-  if (won || lost) {
-    startGame();
+function gameOnClick(clickEvent) {
+  if (titleOpen)  {
+    // startGame();
     return;
   }
 
-  const bounding_rect = canvas.getBoundingClientRect();
-  const click_x = event.clientX - bounding_rect.left;
-  const click_y = event.clientY - bounding_rect.top;
+  clickEvent.stopImmediatePropagation();
+  if (won) {
+    level++;
+    startGame();
+    return false;
+  }
 
-  const x = Math.floor(click_x / PXL_SIZE);
-  const y = Math.floor(click_y / PXL_SIZE);
+  if (lost) {
+    startGame();
+    return false;
+  }
+
+  const boundingRect = canvas.getBoundingClientRect();
+  const clickX = event.clientX - boundingRect.left;
+  const clickY = event.clientY - boundingRect.top;
+
+  const x = Math.floor(clickX / cellSize);
+  const y = Math.floor(clickY / cellSize);
   const pos = {x: x, y: y};
 
   if (!inBounds(pos) || getThing(pos) != EMPTY) {
-    return;
+    return false;
   }
 
   state[x][y] = WALL;
@@ -87,9 +94,11 @@ function onClick(click_event) {
   moveBaby();
   addUndoState();
   draw();
-  }
 
-  function addUndoState() {
+  return false;
+}
+
+function addUndoState() {
   undoStates.push({state: stateCopy(state), baby: babyCopy(baby), won, lost});
 }
 
@@ -106,13 +115,13 @@ function undo() {
   lost = previousState.lost;
 
   draw();
-  }
+}
 
-  function stateCopy(stateToCopy) {
+function stateCopy(stateToCopy) {
   const copiedState = [];
-  for (let x = 0; x < GAME_WIDTH; x++) {
+  for (let x = 0; x < gameWidth; x++) {
     copiedState[x] = [];
-    for (let y = 0; y < GAME_HEIGHT; y++) {
+    for (let y = 0; y < gameHeight; y++) {
       copiedState[x][y] =  stateToCopy[x][y];
     }
   }
@@ -125,27 +134,6 @@ function babyCopy(babyState) {
     babyCopy = {x: babyState.x, y: babyState.y};
   }
   return babyCopy;
-}
-
-function draw() {
-  context.strokeStyle = STROKE_COLOR;
-
-  for (let x = 0; x < GAME_WIDTH; x++) {
-    for (let y = 0; y < GAME_HEIGHT; y++) {
-      const thing = state[x][y];
-      if (thing == EMPTY) context.fillStyle = EMPTY_COLOR;
-      else if (thing == WALL) context.fillStyle = WALL_COLOR;
-      else if (thing == DANGER) context.fillStyle = DANGER_COLOR;
-      else if (thing == BABY) {
-          if (won) context.fillStyle = WON_COLOR;
-          else if (lost) context.fillStyle = DEAD_COLOR;
-          else context.fillStyle = BABY_COLOR;
-      }
-
-      context.strokeRect(x * PXL_SIZE, y * PXL_SIZE, PXL_SIZE, PXL_SIZE);
-      context.fillRect(x * PXL_SIZE, y * PXL_SIZE, PXL_SIZE, PXL_SIZE);
-    }
-  }
 }
 
 function moveBaby() {
@@ -214,8 +202,8 @@ function moveBaby() {
       // visited.add(posToInt(neighbor));
 
       let wallScore = 0;
-      for (let x = 0; x < GAME_WIDTH; x++) {
-        for (let y = 0; y < GAME_HEIGHT; y++) {
+      for (let x = 0; x < gameWidth; x++) {
+        for (let y = 0; y < gameHeight; y++) {
           let thing =  getThing({x, y});
           if (thing != WALL && thing != DANGER) {
             continue;
@@ -225,7 +213,7 @@ function moveBaby() {
           const distance = Math.max(dx * dx + dy * dy, 1);
 
           if (thing == WALL) wallScore += (1.0 / distance);
-          if (thing == DANGER) wallScore -= (1.0 / distance);
+          // if (thing == DANGER) wallScore -= (1.0 / distance);
         }
       }
 
@@ -235,38 +223,23 @@ function moveBaby() {
       queue.push({
         path: path.concat([neighbor]),
         pos: neighbor,
-        score: score + wallScore + 15,
+        score: score + wallScore + 100,
       });
     }
   }
 
   if (bestSolution != null) {
-    let moving = bestSolution.path[1];
-    if (getThing(moving) == DANGER) {
-      lost = true;
-    }
     state[baby.x][baby.y] = EMPTY;
-    baby = moving;
-    state[baby.x][baby.y] = BABY;
+    let movingTo = bestSolution.path[1];
+    baby = movingTo;
+    if (getThing(movingTo) == DANGER) {
+      lost = true;
+      state[baby.x][baby.y] = BABY_LOST;
+    } else {
+      state[baby.x][baby.y] = BABY;
+    }
   } else {
     won = true;
+    state[baby.x][baby.y] = BABY_WON;
   }
-}
-
-function loadLevel(level) {
-  // baby.x = Math.floor((GAME_WIDTH - 1) / 2);
-  baby.x = GAME_WIDTH - 1;
-  baby.y = GAME_HEIGHT - 1;
-  // baby.x = baby.y = 2;
-  // state[0][0] = DANGER;
-  for (let x = 0; x < GAME_WIDTH; x++) {
-      state[x][0] = DANGER;
-  }
-  for (let y = 0; y < GAME_HEIGHT; y++) {
-      state[0][y] = DANGER;
-  }
-  // state[3][0] = EMPTY;
-
-  // state[0][GAME_HEIGHT-1] = DANGER;
-  // state[GAME_WIDTH-1][GAME_HEIGHT-1] = DANGER;
 }
