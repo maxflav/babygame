@@ -85,5 +85,5 @@ function drawUndoHint() {
   context.textAlign = 'left';
   context.textBaseline = 'bottom';
 
-  context.fillText('Z to Undo, R to Restart', 0.5 * cellSize, 0.9 * cellSize);
+  context.fillText('Z to Undo. R to Restart. M to Mute.', 0.5 * cellSize, 0.9 * cellSize);
 }

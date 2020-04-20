@@ -5,15 +5,24 @@ let won = false;
 let lost = false;
 let titleOpen = true;
 let facingLeft = true;
-
 let undoStates = [];
-
 let topMessage = null;
+
+const song = new Audio('audio/babysong.mp3');
+song.loop = true;
+const snapSound = new Audio('audio/snap.wav');
+const hurtSound = new Audio('audio/hurt.wav');
+const winSound = new Audio('audio/winsound.wav');
+const undoSound = new Audio('audio/undo.wav');
+
+let songPlaying = false;
+let mute = false;
 
 function initialize() {
   canvas.addEventListener('click', gameOnClick);
   canvas.addEventListener('click', titleOnClick);
   document.addEventListener('keypress', gameOnKeypress);
+
   showTitleScreen();
 }
 
@@ -35,6 +44,7 @@ function startGame() {
 }
 
 // lol idk
+const M_CODES = ['m', 'KeyM', 77, 109];
 const R_CODES = ['r', 'KeyR', 82, 114];
 const U_CODES = ['u', 'KeyU', 85, 117];
 const Z_CODES = ['z', 'KeyZ', 90, 122];
@@ -42,6 +52,17 @@ const SPACE_CODES = [' ', 'Space', 32];
 
 function gameOnKeypress(keyEvent) {
   let code = keyEvent.key || keyEvent.keyIdentifier || keyEvent.keyCode;
+  if (M_CODES.includes(code)) {
+    if (mute) {
+      mute = false;
+      song.play();
+    } else {
+      mute = true;
+      song.pause();
+      song.currentTime = 0;
+    }
+  }
+
   if (titleOpen)  {
     if (won && (R_CODES.includes(code) || SPACE_CODES.includes(code))) {
       won = false;
@@ -52,6 +73,7 @@ function gameOnKeypress(keyEvent) {
   }
 
   if (R_CODES.includes(code)) {
+    playAudio(undoSound);
     startGame();
   } else if (Z_CODES.includes(code) || U_CODES.includes(code)) {
     undo();
@@ -60,6 +82,11 @@ function gameOnKeypress(keyEvent) {
 }
 
 function gameOnClick(clickEvent) {
+  if (!songPlaying) {
+    song.play();
+    songPlaying = true;
+  }
+
   if (titleOpen)  {
     return;
   }
@@ -72,6 +99,7 @@ function gameOnClick(clickEvent) {
   }
 
   if (lost) {
+    playAudio(undoSound);
     startGame();
     return false;
   }
@@ -92,6 +120,7 @@ function gameOnClick(clickEvent) {
   }
 
   state[x][y] = WALL;
+  playAudio(snapSound);
 
   moveBaby();
   addUndoState();
@@ -109,6 +138,7 @@ function undo() {
     return;
   }
 
+  playAudio(undoSound);
   undoStates.pop();
   const previousState = undoStates[undoStates.length - 1];
   state = stateCopy(previousState.state);
@@ -220,10 +250,18 @@ function moveBaby() {
 
     if (getThing(movingTo) == DANGER) {
       lost = true;
+      playAudio(hurtSound);
       topMessage = "Oh no! Click to restart";
     }
   } else {
     won = true;
+    playAudio(winSound);
     topMessage = "Baby is safe! Click to continue";
+  }
+}
+
+function playAudio(audio) {
+  if (!mute) {
+    audio.play();
   }
 }
